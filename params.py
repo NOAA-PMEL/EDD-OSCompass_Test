@@ -103,7 +103,7 @@ paramdump = command(ser,'&')
 with open(paradumpfile, 'w') as paramdumpfile:
     paramdumpfile.write(paramdump)
 
-#show formated values
+#show formatted values
 paramdict = paramdump_to_dict(open(paradumpfile, 'r').read())
 print("\n")
 print("Parameters:")
