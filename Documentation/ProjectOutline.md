@@ -54,7 +54,7 @@ After the parameters are updated, the power to the OS4000-T shall be cycled.
 From the OS4000-T retreived values, all of the following conditions must be met in order to receive a passing value.
 
 | Name | Minimum Value | Maximum Value | Expected Value |
-|------|-------|
+|------|-------|------|-------|
 |Firmware Version | V2.6.4 | | |
 |	Firmware Date	date | 01/01/2010 | | |
 | Serial Number | 0 | 99999999| |
@@ -97,7 +97,7 @@ From the OS4000-T retreived values, all of the following conditions must be met 
 | Magnetometer Y Bridge Offset | -99999 | 99999 | |
 | Magnetometer Z Bridge Offset | -99999 | 99999 | |
 | Total Gauss | 0 | 99999 | |
-| Soft Iron Calibration | -99999 | 99999 | | |
+| Soft Iron Calibration | -99999 | 99999 | | 
 
 ### Calibration of OS4000-T
 After completion of setting, reading and comparing the command variables (previous sections), the test should run a full Calibration for heading, pitch and roll.  
