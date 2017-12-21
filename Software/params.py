@@ -6,9 +6,9 @@ def paramdump_to_dict(paramdump):
     '''
     Returns comparable value dictionary from parameter dump string
     '''
-    lines = [line for line in paramdump.replace("\r","").split('\n') if line not in '\n']#this if statement is superfulous?
+    lines = [line for line in paramdump.replace("\r","").split('\n') if line not in '\n']
     paramdict_raw = dict([line.split('=') for line in lines[1:-1]])
-    paramdict_raw['footer'] = lines[-1]#need to make a little more robust, or document guarantee in paramdump
+    paramdict_raw['footer'] = lines[-1]
     paramdict = {param:parse_param_value(param,value) for param,value in paramdict_raw.items()}
     return paramdict
 
@@ -20,8 +20,8 @@ def param_conditions(fname):
         param_conditions = csv.reader(csv_file, delimiter=',')
         next(param_conditions)
         conditions = {param : {'min' : parse_param_value(param,minval),
-                               'max' : parse_param_value(param,maxval),
-                               'expected' : parse_param_value(param,expectedval)}
+                           'max' : parse_param_value(param,maxval),
+                           'expected' : parse_param_value(param,expectedval)}
                       for param,minval,maxval,expectedval in param_conditions}
         #del conditions['FW_Version']
     return conditions
@@ -33,10 +33,11 @@ def is_valid_param(param,condition):
     '''
     if param is None:
         return False
-    elif condition['expected'] is None:
-        return condition['min'] <= param <= condition['max']
     else:
-        return param == condition['expected']
+        if condition['expected'] is None:
+            return condition['min'] <= param <= condition['max']
+        else:
+            return param == condition['expected']
 
 def valid_param(condition):
     '''
@@ -68,21 +69,24 @@ def parse_param_value(param,value):
     if value is '':
         return None
     elif param == 'FW_Date':
-        return parse_date_str(value,sep='-')
+        normdatestr = "{0:0>2} {1} {2}".format(*value.split('-'))
+        return datetime.strptime(normdatestr, '%d %b %Y')
     elif param == 'Test_date':
-        return parse_date_str(value,sep=' ')
+        normdatestr = "{0:0>2} {1} 20{2}".format(*value.split(' '))
+        return datetime.strptime(normdatestr, '%d %b %Y')
     elif param == 'FW_Version':
         return LooseVersion(value.replace('V','').replace('-','.'))
     elif param == 'Serial_number':
         return float(value.replace('[D',''))
     elif param in ['Depth_Units','footer']:
         return value
+    elif param == 'Model':
+        return value
+    #added by alex turpin for integer case
+    elif not value.find('.'):
+        return int(value)
     else:
-        fval = float(value)
-        if fval.is_integer():
-            return int(fval)
-        else:
-            return fval
+        return float(value)
 
 def parse_date_str(datestr,sep = ' '):
     '''
