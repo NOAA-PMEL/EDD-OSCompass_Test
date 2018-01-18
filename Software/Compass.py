@@ -19,7 +19,13 @@ class OS4000T():
         self.ser=self.Open_ComPort(baud)
         self.installed=False
         #Grab example output from compass. Ex: $C106.3P-15.6R46.0T20.4*0A
-        self.grab_compass_example()
+        if(self.grab_compass_example()==-1):
+            if(baud==9600):
+                baud=19200
+            else:
+                baud=9600
+            self.grab_compass_example()
+        
         self.serialNumber = 0
         self.current = 0
         self.testResult = False
@@ -47,7 +53,10 @@ class OS4000T():
                 print("%s: %s" % (self.port, ex))
                 self.installed=True
                 return ex
-                
+            else:
+                return -1
+        else:
+            return -1
 
                 
    
@@ -90,22 +99,23 @@ def write_csv(compass, date, owner):
     f.close()
     
 def update_csv(compass, timenow):
-    with open('OS4000T.csv', newline='') as csvfile:
-        CompassReader = pandas.read_csv(csvfile, delimiter=',')
-        df = pandas.DataFrame(data=CompassReader)
+    file = open('OS4000T.csv', newline='')
+    CompassReader = pandas.read_csv(file, delimiter=',')
+    df = pandas.DataFrame(data=CompassReader)
         
         
-        df = df.set_index('Serial Number')
-        df = df.sort_index()
-        df = df[~df.index.duplicated(keep='last')]
+    df = df.set_index('Serial Number')
+    df = df.sort_index()
+    df = df[~df.index.duplicated(keep='last')]
+    
         
-            
-        for i in range(8):
-            if(compass[i].installed):
-                df.ix[compass[i].serialNumber, 0] = compass[i].deviation
-                df.ix[compass[i].serialNumber, 2] = timenow
-                df.ix[compass[i].serialNumber, 4] = compass[i].testResult
-            
+    for i in range(8):
+        if(compass[i].installed):
+            num = int(compass[i].serialNumber)
+            df.ix[num, 0] = compass[i].deviation
+            df.ix[num, 2] = timenow
+            df.ix[num, 4] = compass[i].testResult
+        
     print(df)
     
     #Write sorted file to list.
