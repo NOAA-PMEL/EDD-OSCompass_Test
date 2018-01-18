@@ -14,7 +14,7 @@ def parameter_dump(compass, filename):
     
     # dump params into log
     paramdump = device.command(compass.ser,'paramdump')
-    compass.serialNumber = (paramdump[paramdump.find("Serial_number=")+14:paramdump.find("Test_date")]).strip("\r\n")
+    #compass.serialNumber = (paramdump[paramdump.find("Serial_number=")+14:paramdump.find("Test_date")]).strip("\r\n")
     
     
     #Create Compass Serial Number directory if non-existent. 
@@ -76,7 +76,6 @@ def parameter_check(compass, filename):
     
 def all_compasses(compass, command, *args):
     for i in range(8):
-        input = ""
         if(compass[i].installed):
             device.cal(compass[i].ser,command, *args)
 
@@ -108,11 +107,9 @@ def calibrate_softiron(compass):
     
     input("Align exactly %s degrees, then hit <Enter>" % direction[3])
     all_compasses(compass, "SoftIron_Step")
- 
+    
+
+        
 
 def current_monitor(compass):
-	compass.current = input("How much current is Compass #%s using?" % compass.serialNumber ) #compass.port
-
-#def set_owner(compass, owner):
-
-#def set_testDate(compass):
+	compass.current = input("Compass #%s?" % compass.serialNumber ) 
