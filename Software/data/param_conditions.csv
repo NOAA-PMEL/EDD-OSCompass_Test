@@ -1,8 +1,8 @@
 Param,min,max,expected
 FW_Version,2.6.4,2147483647,
-FW_Date,1-Jan-10,12-Dec-99,
+FW_Date,1-Jan-2010,12-Dec-2099,
 Serial_number,0,99999999,
-Test_date,1-Jan-17,12-Dec-99,
+Test_date,1 Jan 17,12 Dec 99,
 Output_Format,1,16,1
 Display_Fields,1,31,15
 HW_Mounting_Pos,1,6,1
