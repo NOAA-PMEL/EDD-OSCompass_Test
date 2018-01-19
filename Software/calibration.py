@@ -98,7 +98,8 @@ def calibrate_z(compass):
 
     all_compasses(compass, "Step")
 
-def calibrate_softiron(compass):    
+def calibrate_softiron(compass):   
+    print("Return Compass roll back to level.")
     direction = ["North, 0", "East, 90", "South, 180", "West, 270"]   
     all_compasses(compass, "Soft_Iron", "2")
     for i in range(3):
