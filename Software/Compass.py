@@ -205,7 +205,14 @@ def test_verification(Ports, compass):
                     c = ex[ex.find("$C")+2:ex.rfind("P")]
                     result = math.fabs(float(c)-direction)
                     print("Compass %s deviation: %s" %(compass[i].serialNumber, result))
-                    if(result>=MAX_COMPASS_DEVIATION):
+                    #If direction = 0, test for results +/- 1.1 from North. I.E. 389.9 to 1.1 degrees
+                    if(direction==0):
+                        #If deviation in range of 1.1 to 358.9 test failed
+                        if(358.9>=result>=MAX_COMPASS_DEVIATION):
+                            compass[i].testResult=False
+                            print("Compass Failed!")
+                    #For all other directions != 0                        
+                    elif(result>=MAX_COMPASS_DEVIATION):
                         compass[i].testResult=False
                         print("Compass Failed!")
 
