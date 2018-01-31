@@ -92,11 +92,11 @@ def cal(self,commandstr,*args):
     elif commandstr in "Step":
         self.flushInput() #Gets rid of 'xYxXy.xy..X'
         self.write(chr(32).encode())
-        self.read_until(terminator=b'Flash Write').decode()
+        print(self.read_until(terminator=b'Flash Write').decode())
     elif commandstr in "Soft_Step":
         self.write(chr(32).encode())
         #assert read statement below receives 'Bar>'
-        self.read_until(terminator=b'Bar>').decode()
+        print(self.read_until(terminator=b'Bar>').decode())
     elif commandstr in "SoftIron_Step":
         self.write(chr(32).encode())
         input = self.read_until(terminator=b'continue **').decode()
