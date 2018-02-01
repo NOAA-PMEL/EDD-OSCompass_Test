@@ -58,7 +58,7 @@ def command(self,commandstr,*args):
     else:
         if commandstr in disallowed_commands.keys():
             raise ValueError(disallowed_commands[commandstr])
-        elif commandstr in report_commands.values():
+        elif commandstr in '&':#report_commands.values():
             _write_command(self,commandstr)
             time.sleep(1.0)
             result = self.read_until(terminator=b'SoftIron')   #Read some arbitrary distance into Paramdump. 
@@ -66,6 +66,13 @@ def command(self,commandstr,*args):
             result += self.read_until()             #Finish reading until last line
             self.write(chr(32).encode())            #Send <Space> to begin streaming of compass data again
             return result.decode('utf-8')            #return Paramdump
+        elif commandstr in 'V':
+            _write_command(self, commandstr)
+            time.sleep(0.25)
+            result = self.readline()
+            result += self.readline()
+            self.write(chr(32).encode())
+            return result.decode()
         elif commandstr in set_commands.values():
             _write_command(self,commandstr)
             print(self.read_until(terminator=b'Esc').decode())
@@ -92,11 +99,11 @@ def cal(self,commandstr,*args):
     elif commandstr in "Step":
         self.flushInput() #Gets rid of 'xYxXy.xy..X'
         self.write(chr(32).encode())
-        print(self.read_until(terminator=b'Flash Write').decode())
+        #print(self.read_until(terminator=b'Flash Write').decode())
     elif commandstr in "Soft_Step":
         self.write(chr(32).encode())
         #assert read statement below receives 'Bar>'
-        print(self.read_until(terminator=b'Bar>').decode())
+        #print(self.read_until(terminator=b'Bar>').decode())
     elif commandstr in "SoftIron_Step":
         self.write(chr(32).encode())
         input = self.read_until(terminator=b'continue **').decode()
