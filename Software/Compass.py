@@ -19,7 +19,8 @@ class OS4000T():
         self.ser=self.Open_ComPort(baud)
         self.installed=False
         #Grab example output from compass. Ex: $C106.3P-15.6R46.0T20.4*0A
-        if(self.grab_compass_example()==-1):
+        a = self.grab_compass_example()
+        if(a == -1):
             self.ser.close()
             if(baud==9600):
                 baud=19200
@@ -27,10 +28,14 @@ class OS4000T():
                 baud=9600
             self.ser = self.Open_ComPort(baud)
             self.grab_compass_example()
+        elif(a == 0): 
+            return
         self.grab_serial_number()
         self.current = 0
         self.testResult = False
         self.deviation = 0.0
+        if(self.serialNumber):
+            print("%s: SN#%s" % (self.ser.port, self.serialNumber))
         
         
     def Open_ComPort(self, baud):
@@ -45,12 +50,15 @@ class OS4000T():
         return conn
     
     def grab_compass_example(self):
-        #self.ser.flushInput()
-        input = self.ser.read_until().decode('utf-8', 'ignore')
+        self.ser.flushInput()
+        self.ser.readline()
+        input=self.ser.readline().decode()
+        
+        #input = self.ser.read_until().decode('utf-8', 'ignore')
         if(input.find("$")!=-1):
             if(input.rfind("*")!=-1):
                 ex = input[input.rfind("$"):input.rfind("*")+3]
-                print("%s: %s" % (self.port, ex))
+                #print("%s: %s" % (self.port, ex))
                 self.installed=True
                 return ex
             else:
@@ -62,12 +70,19 @@ class OS4000T():
             return -1
             
     def grab_compass_line(self):
+        self.ser.flushInput()
+        self.ser.readline()
         
-        input = self.ser.read_until().decode('utf-8', 'ignore')
-        return input[input.rfind("$"):input.rfind("*")+3]
+        #input = self.ser.read_until().decode('utf-8', 'ignore')
+        input = self.ser.readline().decode('utf-8', 'ignore')
+        ##print(input)
+        input = input[input.rfind("C"):input.rfind("*")+3]
+        print("Compass %s: %s" % (self.serialNumber, input))
+        return input
 
     def grab_serial_number(self):
         result = device.command(self.ser, "FW_Version")
+        #print(result)
         self.serialNumber= result[result.find("SN#")+3:result.rfind(",")]
         #print("Compass %s on %s" % (self.serialNumber, self.port))
    
@@ -150,7 +165,7 @@ def compass_setup(Ports, compass):
     print("Compass current testing. 1 milli-Volt equals 10 milli-Amp")     
     for i in range(8):
         if(compass[i].installed):
-            calibration.current_monitor(compass[i])		
+            calibration.current_monitor(compass[i])     
     
       
     for i in range(8):
@@ -200,9 +215,10 @@ def test_verification(Ports, compass):
         direction = int(text)
         if(0<=direction<=359):
             for i in range(8):
-                if(compass[i].installed & compass[i].testResult):
+                #if(compass[i].installed & compass[i].testResult):
+                if(compass[i].installed):
                     ex = compass[i].grab_compass_line()
-                    c = ex[ex.find("$C")+2:ex.rfind("P")]
+                    c = ex[ex.find("C")+1:ex.rfind("P")]
                     result = math.fabs(float(c)-direction)
                     print("Compass %s deviation: %s" %(compass[i].serialNumber, result))
                     #If direction = 0, test for results +/- 1.1 from North. I.E. 389.9 to 1.1 degrees
@@ -225,7 +241,8 @@ def test_verification(Ports, compass):
         pitch = int(text)
         if(-75<=pitch<=75):
             for i in range(8):
-                if(compass[i].installed & compass[i].testResult):
+                #if(compass[i].installed & compass[i].testResult):
+                if(compass[i].installed):
                     ex = compass[i].grab_compass_line()
                     p = ex[ex.find("P")+1:ex.rfind("R")]
                     result = math.fabs(float(p)-pitch)
@@ -243,7 +260,8 @@ def test_verification(Ports, compass):
         roll = int(text)
         if(-75<=roll<=75):
             for i in range(8):
-                if(compass[i].installed & compass[i].testResult):
+                #if(compass[i].installed & compass[i].testResult):
+                if(compass[i].installed):
                     ex = compass[i].grab_compass_line()
                     r = ex[ex.find("R")+1:ex.rfind("T")]
                     result = math.fabs(float(r)-roll)
@@ -257,12 +275,12 @@ def test_verification(Ports, compass):
     update_csv(compass)
 
 
-Ports=Setup_ComPorts()	
+Ports=Setup_ComPorts()  
 compass = []
 while(1):
     
     char = input("Compass Setup (\'s\'), Calibrate (\'c\') or Verification (\'v\')?")
-    print("Input Char: %s" % char)
+    #print("Input Char: %s" % char)
     
     if(char=='s'):
         compass_setup(Ports, compass)
