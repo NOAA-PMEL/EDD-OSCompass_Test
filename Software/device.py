@@ -17,6 +17,7 @@ set_commands = {'Output_Rate':'R',
 cal_commands = {'XY_Cal':'C',
                 'Z_Cal':'Z',
                 'Soft_Iron':'$'}
+ser_commands = {'Flush':'Flush'}
 
          
 
@@ -113,6 +114,8 @@ def cal(self,commandstr,*args):
         
         print(self.read_until(terminator=b'Flash Write').decode())
         #assert input == 'Flash Write'
+    elif commandstr in "Flush":
+        self.flushInput()
         
         
         
