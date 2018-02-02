@@ -70,13 +70,12 @@ class OS4000T():
             return -1
             
     def grab_compass_line(self):
-        self.ser.flushInput()
         self.ser.readline()
         
-        #input = self.ser.read_until().decode('utf-8', 'ignore')
+        
         input = self.ser.readline().decode('utf-8', 'ignore')
-        ##print(input)
-        input = input[input.rfind("C"):input.rfind("*")+3]
+        
+        input = input[input.rfind("$"):input.rfind("*")+3]
         print("Compass %s: %s" % (self.serialNumber, input))
         return input
 
@@ -214,6 +213,7 @@ def test_verification(Ports, compass):
             print("Please pick a number between 0 and 359")
         direction = int(text)
         if(0<=direction<=359):
+            calibration.all_compasses(compass, "Flush")
             for i in range(8):
                 #if(compass[i].installed & compass[i].testResult):
                 if(compass[i].installed):
@@ -240,6 +240,7 @@ def test_verification(Ports, compass):
             print("Please pick a number between -75 and 75")
         pitch = int(text)
         if(-75<=pitch<=75):
+            calibration.all_compasses(compass, "Flush")
             for i in range(8):
                 #if(compass[i].installed & compass[i].testResult):
                 if(compass[i].installed):
@@ -259,6 +260,7 @@ def test_verification(Ports, compass):
             print("Please pick a number between -75 and 75")
         roll = int(text)
         if(-75<=roll<=75):
+            calibration.all_compasses(compass, "Flush")
             for i in range(8):
                 #if(compass[i].installed & compass[i].testResult):
                 if(compass[i].installed):
