@@ -8,8 +8,8 @@ import csv
 import pandas
 
 MAX_COMPASS_DEVIATION=1.01
-MAX_PITCH_DEVIATION=2.01
-MAX_ROLL_DEVIATION=2.01
+MAX_PITCH_DEVIATION=5.01
+MAX_ROLL_DEVIATION=5.01
 
 class OS4000T():
 
@@ -34,6 +34,9 @@ class OS4000T():
         self.current = 0
         self.testResult = False
         self.deviation = 0.0
+        self.headingDev=0.0
+        self.pitchDev=0.0
+        self.rollDev=0.0
         if(self.serialNumber):
             print("%s: SN#%s" % (self.ser.port, self.serialNumber))
         
@@ -117,10 +120,10 @@ def write_csv(compass, owner):
     date = time.strftime("%m%d%Y_%H:%M:%S", time.gmtime())      
     if(os.path.isfile('OS4000T.csv')==False):
         f = open('OS4000T.csv', 'a')
-        f.write("Serial Number,Deviation,PMEL Owner,Test Date,Compass Current,Test Result\r\n")
+        f.write("Serial Number,Deviation,PMEL Owner,Test Date,Compass Current,Test Result,Average Heading Deviation,Average Pitch Deviation,Average Roll Deviation\r\n")
     else:
         f = open('OS4000T.csv', 'a')
-    f.write("%s,%s,%s,%s,%s,%s\r\n" %(compass.serialNumber, compass.deviation, owner, date, compass.current, compass.testResult))
+    f.write("%s,%s,%s,%s,%s,%s,%s,%s,%s\r\n" %(compass.serialNumber, compass.deviation, owner, date, compass.current, compass.testResult, compass.headingDev, compass.pitchDev, compass.rollDev))
     f.close()
     
 def update_csv(compass):
@@ -140,6 +143,9 @@ def update_csv(compass):
             df.ix[num, 0] = compass[i].deviation
             df.ix[num, 2] = timenow
             df.ix[num, 4] = compass[i].testResult
+            df.ix[num, 5] = compass[i].headingDev
+            df.ix[num, 6] = compass[i].pitchDev
+            df.ix[num, 7] = compass[i].rollDev
         
     print(df)
     
@@ -195,7 +201,7 @@ def compass_calibrate(Ports, compass):
     
     
 def test_verification(Ports, compass):
-    
+    headingCount = 0
     if(compass==[]):
         for i in range(8):
             compass.append(OS4000T(Ports[len(Ports)-8+i], 9600))
@@ -214,12 +220,15 @@ def test_verification(Ports, compass):
         direction = int(text)
         if(0<=direction<=359):
             calibration.all_compasses(compass, "Flush")
+            headingCount +=1
             for i in range(8):
-                #if(compass[i].installed & compass[i].testResult):
                 if(compass[i].installed):
                     ex = compass[i].grab_compass_line()
                     c = ex[ex.find("C")+1:ex.rfind("P")]
                     result = math.fabs(float(c)-direction)
+                    if(result > 180):
+                        result = 360.0 - result
+                    compass[i].headingDev += result
                     print("Compass %s deviation: %s" %(compass[i].serialNumber, result))
                     #If direction = 0, test for results +/- 1.1 from North. I.E. 389.9 to 1.1 degrees
                     if(direction==0):
@@ -232,6 +241,11 @@ def test_verification(Ports, compass):
                         compass[i].testResult=False
                         print("Compass Failed!")
 
+    for i in range(8):
+        if(compass[i].installed):
+            compass[i].headingDev = compass[i].headingDev/headingCount                        
+                        
+    pitchCount =0
     print("Testing Pitch Accuracy")
     for i in range(4):
         text = input("Pitch compass calibration jig to desired angle (-75 to 75):")
@@ -241,17 +255,24 @@ def test_verification(Ports, compass):
         pitch = int(text)
         if(-75<=pitch<=75):
             calibration.all_compasses(compass, "Flush")
+            pitchCount += 1
             for i in range(8):
-                #if(compass[i].installed & compass[i].testResult):
                 if(compass[i].installed):
                     ex = compass[i].grab_compass_line()
                     p = ex[ex.find("P")+1:ex.rfind("R")]
                     result = math.fabs(float(p)-pitch)
+                    compass[i].pitchDev += result
                     print("Compass %s pitch deviation: %s" %(compass[i].serialNumber, result))
-                    if(result>=MAX_PITCH_DEVIATION):
-                        compass[i].testResult=False
-                        print("Compass Failed!")
+                    
     
+    for i in range(8):
+        if(compass[i].installed):
+            compass[i].pitchDev = compass[i].pitchDev/pitchCount   
+            if(compass[i].pitchDev>=MAX_PITCH_DEVIATION):
+                compass[i].testResult=False
+                print("Compass %s Failed!" % compass[i].serialNumber)
+    
+    rollCount = 0
     print("Testing Roll Accuracy")
     for i in range(4):
         text =input("Roll compass calibration jig to desired angle (-75 to 75):")
@@ -261,17 +282,23 @@ def test_verification(Ports, compass):
         roll = int(text)
         if(-75<=roll<=75):
             calibration.all_compasses(compass, "Flush")
+            rollCount += 1
             for i in range(8):
-                #if(compass[i].installed & compass[i].testResult):
                 if(compass[i].installed):
                     ex = compass[i].grab_compass_line()
                     r = ex[ex.find("R")+1:ex.rfind("T")]
                     result = math.fabs(float(r)-roll)
+                    compass[i].rollDev += result
                     print("Compass %s roll deviation: %s" % (compass[i].serialNumber, result))
-                    if(result>=MAX_ROLL_DEVIATION):
-                        compass[i].testResult=False
-                        print("Compass Failed!")
+                    
     
+    
+    for i in range(8):
+        if(compass[i].installed):
+            compass[i].rollDev = compass[i].rollDev/rollCount
+            if(compass[i].rollDev>=MAX_ROLL_DEVIATION):
+                compass[i].testResult=False
+                print("Compass %s Failed!" % compass[i].serialNumber)
     
     #Push new Compass Values
     update_csv(compass)
