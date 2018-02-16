@@ -300,7 +300,12 @@ def test_verification(Ports, compass):
                 compass[i].testResult=False
                 print("Compass %s Failed!" % compass[i].serialNumber)
     
-    #Push new Compass Values
+    #Document changes to OS4000T.csv history file
+    for i in range(8):
+        if(compass[i].installed):
+            write_csv(compass[i], owner)
+    
+    #Push new Compass Values to OS4000T_Master.csv
     update_csv(compass)
 
 
