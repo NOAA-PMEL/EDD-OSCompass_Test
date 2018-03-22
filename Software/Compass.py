@@ -130,13 +130,33 @@ def update_csv(compass):
     file = open('OS4000T.csv', newline='')
     CompassReader = pandas.read_csv(file, delimiter=',')
     df = pandas.DataFrame(data=CompassReader)
+    
+    df_pass = df[df['Test Result']]
+    df_pass = df_pass.set_index('Serial Number')
+    df_pass = df_pass.sort_index()
+    df_pass = df_pass[~df_pass.index.duplicated(keep='last')]
+    
+    df_fail = df[~df['Test Result]]
+    df_fail = df_fail.set_index('Serial Number')
+    df_fail = df_fail.drop(df_pass.index)
+    df_fail = df_fail.sort_index()
+    df_fail = df_fail[~df_fail.index.duplicated(keep = 'last')]
+    
+    frames = [df_pass, df_fail]
+    result = pandas.concat(frames)
+    result = result.sort_index()
+    result.to_csv('OS4000T_master.csv')
+    
         
-        
-    df = df.set_index('Serial Number')
-    df = df.sort_index()
-    df = df[~df.index.duplicated(keep='last')]
-    timenow = time.strftime("%m%d%Y_%H:%M:%S", time.gmtime())
-        
+    #df = df.set_index('Serial Number')
+    #df = df.sort_index()
+    #df = df[~df.index.duplicated(keep='last')]
+    #timenow = time.strftime("%m%d%Y_%H:%M:%S", time.gmtime())
+    
+    
+    
+    #df_fail = df[~df['Test Result']]
+    """    
     for i in range(8):
         if(compass[i].installed):
             num = int(compass[i].serialNumber)
@@ -148,9 +168,10 @@ def update_csv(compass):
             df.ix[num, 7] = compass[i].rollDev
         
     print(df)
-    
+    """
     #Write sorted file to list.
-    df.to_csv('OS4000T_Master.csv')
+    #df.to_csv('OS4000T_Master.csv')
+
     
     
 def compass_setup(Ports, compass):
