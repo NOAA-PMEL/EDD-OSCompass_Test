@@ -7,7 +7,7 @@ import device
 import csv
 import pandas
 
-MAX_COMPASS_DEVIATION=1.01
+MAX_COMPASS_DEVIATION=3.01
 MAX_PITCH_DEVIATION=5.01
 MAX_ROLL_DEVIATION=5.01
 
@@ -22,10 +22,10 @@ class OS4000T():
         a = self.grab_compass_example()
         if(a == -1):
             self.ser.close()
-            if(baud==9600):
-                baud=19200
-            else:
+            if(baud==19200):
                 baud=9600
+            else:
+                baud=19200
             self.ser = self.Open_ComPort(baud)
             self.grab_compass_example()
         elif(a == 0): 
@@ -320,7 +320,7 @@ def test_verification(Ports, compass):
             if(compass[i].rollDev>=MAX_ROLL_DEVIATION):
                 compass[i].testResult=False
                 print("Compass %s Failed!" % compass[i].serialNumber)
-    
+    owner= input('PMEL Owner: ')
     #Document changes to OS4000T.csv history file
     for i in range(8):
         if(compass[i].installed):
