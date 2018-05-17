@@ -136,7 +136,7 @@ def update_csv(compass):
     df_pass = df_pass.sort_index()
     df_pass = df_pass[~df_pass.index.duplicated(keep='last')]
     
-    df_fail = df[~df['Test Result]]
+    df_fail = df[df['Test Result']]
     df_fail = df_fail.set_index('Serial Number')
     df_fail = df_fail.drop(df_pass.index)
     df_fail = df_fail.sort_index()
